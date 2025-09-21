@@ -3,6 +3,10 @@ class chipeu {
         chipeu();
         void emulateCycle();
         void loadRom(const char* filename);
+        const bool getDraw() const;
+        void setDraw(bool x);
+        const unsigned char* getGfx() const;
+        void setGfx(unsigned char x, unsigned int pos);
     private:
         // chip8_fontset each character is 5 bytes
         static constexpr unsigned char chip8_fontset[80] = { 

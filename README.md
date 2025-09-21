@@ -29,7 +29,7 @@ You can install SDL2 on your system using a package manager:
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/theroguevigilante/chipeu.git](https://github.com/theroguevigilante/chipeu.git)
+    git clone https://github.com/theroguevigilante/chipeu.git
     cd chipeu
     ```
 
@@ -46,7 +46,7 @@ You can install SDL2 on your system using a package manager:
     ./chipeu path-to-your-rom.ch8
     ```
     Several public domain ROMs are available online for testing, such as `ibm.ch8` or `test_opcode.ch8`. Have fun!
-    There are some test ROMs in the tests folder. Thanks to [Timendus][https://github.com/timendus]
+    There are some test ROMs in the tests folder. Thanks to [Timendus](https://github.com/timendus)
 
 ## Controls 🎮
 

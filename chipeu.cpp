@@ -2,9 +2,7 @@
 #include <iostream>
 #include "chipeu.h"
 
-// Basic chip-8 system structure
 chipeu::chipeu() : pc (0x200){
-    // Loading the fonstet in to the memory
     for (int i = 0; i < 80; ++i){
         memory[i] = chip8_fontset[i];
     }
@@ -13,12 +11,11 @@ chipeu::chipeu() : pc (0x200){
 void chipeu::emulateCycle(){
     opcode = memory[pc] << 8 | memory[pc+1];
     unsigned char x{}, y{}, kk{};
-    std::cout << "Opcode:0x" << std::hex << opcode << " PC:0x" << pc << std::endl;
+    //std::cout << "Opcode:0x" << std::hex << opcode << " PC:0x" << pc << std::endl;
     x = (opcode & 0x0F00) >> 8;
     y = (opcode & 0x00F0) >> 4;
     kk = opcode & 0x00FF;
     switch(opcode & 0xF000){
-        // 0x0 family
         case 0x0000:
             switch(opcode & 0x00FF){
                 case 0x00E0:
@@ -87,27 +84,52 @@ void chipeu::emulateCycle(){
                 case 0x0002: V[x] &= V[y]; break;
                 case 0x0003: V[x] ^= V[y]; break;
                 case 0x0004:
-                             if(V[y] > (0xFF - V[x])) V[0xF] = 1;
-                             else V[0xF] = 0;
-                             V[x] += V[y];
+                             {
+                                 unsigned short sum = V[x] + V[y];
+                                 if (sum > 255) {
+                                     V[0xF] = 1;
+                                 } else {
+                                     V[0xF] = 0;
+                                 }
+                                 V[x] = sum & 0xFF;
+
+                             }
                              break;
                 case 0x0005:
-                             if(V[x] >= V[y]) V[0xF] = 1;
-                             else V[0xF] = 0;
-                             V[x] -= V[y];
+                             {
+                                 if (V[x] >= V[y]) {
+                                     V[0xF] = 1;
+                                 } else {
+                                     V[0xF] = 0;
+                                 }
+
+                                 V[x] -= V[y];
+                             }
+                             break;
+
+                case 0x0007:
+                             {
+                                 if (V[y] >= V[x]) {
+                                     V[0xF] = 1;
+                                 } else {
+                                     V[0xF] = 0;
+                                 }
+
+                                 V[x] = V[y] - V[x];
+                             }
                              break;
                 case 0x0006:
-                             V[0xF] = V[x] & 0x1;
-                             V[x] >>= 1;
+                             {
+                                 V[0xF] = V[x] & 0x1;
+                                 V[x] >>= 1;
+                             }
                              break;
-                case 0x0007:
-                             if(V[y] >= V[x]) V[0xF]=1;
-                             else V[0xF] = 0;
-                             V[x] = V[y] - V[x];
-                             break;
+
                 case 0x000E:
-                             V[0xF] = V[x] >> 7;
-                             V[x] <<= 1;
+                             {
+                                 V[0xF] = V[x] >> 7;
+                                 V[x] <<= 1;
+                             }
                              break;
                 default:
                              std::cout << "Unknown opcode [0x" << std::hex << opcode << "]" << std::endl;
@@ -128,39 +150,52 @@ void chipeu::emulateCycle(){
             break;
         case 0xD000:
             {
-                unsigned char height = (opcode & 0x000F);
-                unsigned char pixel{};
-                unsigned char X = V[x];
-                unsigned char Y = V[y];
+                unsigned char x_coord = V[x];
+                unsigned char y_coord = V[y];
+                unsigned char height = opcode & 0x000F;
                 V[0xF] = 0;
-                for (int row = 0; row < height; ++row){
-                    pixel = memory[I+row];
-                    for(int column = 0;column < 8; ++column){
-                        if ((pixel & (0x80 >> column)) != 0){
-                            unsigned int screenX = (column + X) % 64;
-                            unsigned int screenY = (row + Y) % 32;
+
+                for (int row = 0; row < height; ++row) {
+                    unsigned char pixel_byte = memory[I + row];
+
+                    for (int column = 0; column < 8; ++column) {
+                        if ((pixel_byte & (0x80 >> column)) != 0) {
+                            unsigned int screenX = (x_coord + column) % 64;
+                            unsigned int screenY = (y_coord + row) % 32;
                             unsigned int index = screenX + (screenY * 64);
-                            if (gfx[index] == 1) V[0xF] = 1;
+
+                            if (gfx[index] == 1) {
+                                V[0xF] = 1;
+                            }
                             gfx[index] ^= 1;
                         }
                     }
                 }
+
                 drawflag = true;
-                pc+=2;
+                pc += 2;
             }
-            break; 
-       case 0xE000:
-            switch(opcode & 0x00FF){
-                case 0x009E:
-                    if(key[V[x]]) pc+=4;
-                    else pc+=2;
-                    break;
-                case 0x00A1:
-                    if(!key[V[x]]) pc+=4;
-                    else pc+=2;
-                    break;
-                default :
-                    std::cout << "Unknown opcode [0x" << std::hex << opcode << "]" << std::endl;
+            break;        case 0xE000:
+            {
+                bool skip = false;
+                switch(opcode & 0x00FF){
+                    case 0x009E:
+                        if(key[V[x]])
+                            skip = true;
+                        break;
+                    case 0x00A1:
+                        if(!key[V[x]])
+                            skip = true;
+                        break;
+                    default :
+                        std::cout << "Unknown opcode [0x" << std::hex << opcode << "]" << std::endl;
+                }
+
+                if (skip) {
+                    pc += 4;
+                } else {
+                    pc += 2;
+                }
             }
             break;
         case 0xF000:
@@ -170,8 +205,20 @@ void chipeu::emulateCycle(){
                     pc+=2;
                     break;
                 case 0x000A:
-                    // TODO: input setup
-                    pc+=2;
+                    {
+                        bool key_pressed = false;
+
+                        for (int i = 0; i < 16; ++i) {
+                            if (key[i] != 0) {
+                                V[x] = i;
+                                key_pressed = true;
+                            }
+                        }
+                        if (!key_pressed) {
+                            return; 
+                        }
+                        pc += 2;
+                    }
                     break;
                 case 0x0015:
                     delay_timer = V[x];
@@ -186,29 +233,32 @@ void chipeu::emulateCycle(){
                     pc+=2;
                     break;
                 case 0x0029:
-                    // TODO: implement drawing
-                    pc+=2;
+                    I = V[x] * 5;
+                    pc += 2;
                     break;
                 case 0x0033:
-                    memory[I] = V[x] / 100;
-                    memory[I+1] = (V[x] / 10) % 10;
-                    memory[I+2] = (V[x] & 100) % 10;
-                    pc+=2;
+                    {
+                        unsigned char value = V[x];
+                        memory[I]     = value / 100;
+                        memory[I + 1] = (value / 10) % 10;
+                        memory[I + 2] = value % 10;
+
+                        pc += 2;
+                    }
                     break;
                 case 0x0055:
-                    for(int i = 0; i < x; ++i){
-                        memory[I+i] = V[i];
+                    for(int i = 0; i <= x; ++i){
+                        memory[I + i] = V[i];
                     }
-                    pc+=2;
+                    pc += 2;
                     break;
 
                 case 0x0065:
-                    for(int i = 0; i < x; ++i){
-                        V[i] = memory[I+i];
+                    for(int i = 0; i <= x; ++i){
+                        V[i] = memory[I + i];
                     }
-                    pc+=2;
-                    break;
-            }
+                    pc += 2;
+                    break;            }
             break;
     }
 }
@@ -250,3 +300,26 @@ void chipeu::setGfx(unsigned char x, unsigned int pos){
     else std::cout << "index out of range, index:" << x << std::endl;
 }
 
+const int chipeu::getKey(unsigned int index) const{
+    if (index < 16){
+        return key[index];
+    }
+    return -1;
+}
+
+void chipeu::setKey(unsigned int index, unsigned char state) {
+    //std::cout << "setKey called! Index: " << index << ", State: " << (int)state << std::endl;
+    if (index < 16){
+        key[index] = state;
+    }
+}
+
+void chipeu::updateTimers() {
+    if (delay_timer > 0) {
+        --delay_timer;
+    }
+
+    if (sound_timer > 0) {
+        --sound_timer;
+    }
+}

@@ -11,7 +11,14 @@ Chip-8 is an interpreted programming language, developed by Joseph Weisbecker in
 * ✅ **Full Opcode Support:** Implements all 35 original Chip-8 opcodes.
 * 🎨 **Graphics Rendering:** Uses the SDL2 library for simple and cross-platform windowing and graphics.
 * 🔊 **Basic Sound:** Sound needs to be implemented :/ 
-* ⌨️ **Keyboard Input:** Input still needs to be implemented :/
+* ⌨️ **Keyboard Input:** Keypad mapped to keyboard.
+
+| Chip-8 Keypad | Your Keyboard |
+| :-----------: | :-----------: |
+| `1` `2` `3` `C`   | `1` `2` `3` `4`   |
+| `4` `5` `6` `D`   | `Q` `W` `E` `R`   |
+| `7` `8` `9` `E`   | `A` `S` `D` `F`   |
+| `A` `0` `B` `F`   | `Z` `X` `C` `V`   |
 
 ## Dependencies 🛠️
 

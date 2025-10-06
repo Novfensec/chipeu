@@ -1,12 +1,15 @@
 class chipeu {
     public:
         chipeu();
+        void updateTimers();
         void emulateCycle();
         void loadRom(const char* filename);
         const bool getDraw() const;
+        const int getKey(unsigned int index) const;
         void setDraw(bool x);
         const unsigned char* getGfx() const;
         void setGfx(unsigned char x, unsigned int pos);
+        void setKey(unsigned int index, unsigned char state);
     private:
         // chip8_fontset each character is 5 bytes
         static constexpr unsigned char chip8_fontset[80] = { 
@@ -48,5 +51,4 @@ class chipeu {
         // Input
         unsigned char key[16]{};
         bool drawflag {true};
-
 };

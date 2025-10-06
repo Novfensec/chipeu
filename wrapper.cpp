@@ -55,6 +55,11 @@ extern "C"
         return chip.getGfx();
     }
 
+    __declspec(dllexport) void setGfx(unsigned char value, unsigned int pos)
+    {
+        chip.setGfx(value, pos);
+    }
+
     __declspec(dllexport) bool getDraw()
     {
         return chip.getDraw();
